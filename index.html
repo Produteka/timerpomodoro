@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Produteka DeepWork</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@300;400;500;600;700&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --brand-orange: #FF7700;
+            --brand-pink: #FA55DE;
+            --brand-purple: #7e06c8;
+            --brand-light: #f7f6f3;
+            --text-primary: #333333;
+            --text-secondary: #666666;
+            --bg-primary: #f7f6f3;
+            --bg-secondary: #f7f6f3;
+            --bg-tertiary: #eeeeea;
+        }
+        
+        .dark-mode {
+            --text-primary: #f7f7f7;
+            --text-secondary: #b0b0b0;
+            --bg-primary: #000000;
+            --bg-secondary: #121212;
+            --bg-tertiary: #1e1e1e;
+        }
+        
+        body {
+            font-family: 'Figtree', 'Poppins', sans-serif;
+            background-color: var(--bg-primary);
+            min-height: 100vh;
+            transition: background-color 0.3s ease;
+        }
+        
+        .app-container {
+            background-color: var(--bg-secondary);
+            color: var(--text-primary);
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+        
+        .timer-circle {
+            width: 220px;
+            height: 220px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+        
+        .timer-circle::before {
+            content: '';
+            position: absolute;
+            width: 210px;
+            height: 210px;
+            border-radius: 50%;
+            background-color: rgba(255, 255, 255, 0.1);
+            z-index: 0;
+        }
+        
+        .progress-ring {
+            position: absolute;
+            top: 0;
+            left: 0;
+            transform: rotate(-90deg);
+        }
+        
+        .time-display {
+            font-size: 2.5rem;
+            font-weight: 700;
+            z-index: 1;
+        }
+        
+        .logo-container {
+            height: 90px; /* Increased height */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 4px;
+            margin-bottom: 1.5rem;
+        }
+        
+        .logo-container img {
+            max-height: 100%;
+            max-width: 100%;
+            object-fit: contain;
+        }
+        
+        .phrase-container {
+            min-height: 80px;
+            background-color: var(--bg-tertiary);
+            transition: background-color 0.3s ease;
+        }
+        
+        .phrase-text {
+            font-style: italic;
+        }
+        
+        .phrase-author {
+            font-weight: 600;
+            margin-top: 4px;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .fade-in {
+            animation: fadeIn 0.5s ease-out forwards;
+        }
+        
+        .btn {
+            transition: all 0.3s ease;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+        
+        .btn:active {
+            transform: translateY(0);
+        }
+        
+        .mode-btn {
+            transition: all 0.3s ease;
+            background-color: var(--bg-tertiary);
+            color: var(--text-primary);
+        }
+        
+        .mode-btn.active {
+            color: white;
+        }
+        
+        /* Toggle Switch */
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 24px;
+        }
+        
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 24px;
+        }
+        
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        
+        input:checked + .slider {
+            background-color: var(--brand-purple);
+        }
+        
+        input:checked + .slider:before {
+            transform: translateX(26px);
+        }
+        
+        .stats-container {
+            background-color: var(--bg-tertiary);
+            transition: background-color 0.3s ease;
+        }
+        
+        .dark-mode .logo-container {
+            background-color: white;
+            border-radius: 8px;
+        }
+    </style>
+</head>
+<body class="flex items-center justify-center p-4">
+    <div class="w-full max-w-5xl app-container rounded-2xl shadow-xl overflow-hidden">
+        <div class="flex flex-col md:flex-row">
+            <!-- Left Section: Logo and Phrase -->
+            <div class="w-full md:w-1/3 p-6 flex flex-col justify-between border-b md:border-b-0 md:border-r border-gray-200">
+                <!-- Logo Area -->
+                <div class="logo-container">
+                    <!-- Company logo -->
+                    <img src="https://framerusercontent.com/images/VDpNqWgXzkozFRvOP9IUWfrouQw.png?scale-down-to=512" alt="Company Logo" class="h-full object-contain">
+                </div>
+                
+                <!-- Inspirational Phrase -->
+                <div class="phrase-container flex-grow p-4 rounded-lg mb-4">
+                    <div id="phraseDisplay" class="text-center">
+                        <p class="phrase-text">¡Inicia tu sesión para ver una frase inspiradora!</p>
+                        <p class="phrase-author"></p>
+                    </div>
+                </div>
+                
+                <!-- Session Counter -->
+                <div class="stats-container p-4 rounded-lg flex justify-between">
+                    <div>
+                        <span class="text-secondary">Sesiones:</span>
+                        <span id="sessionCount" class="font-bold text-[#7e06c8] ml-2">0</span>
+                    </div>
+                    <div>
+                        <span class="text-secondary">Objetivo:</span>
+                        <span id="sessionGoal" class="font-bold text-[#FF7700] ml-2">4</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Right Section: Timer and Controls -->
+            <div class="w-full md:w-2/3 p-6 flex flex-col items-center">
+                <div class="w-full flex justify-between items-center mb-6">
+                    <h1 class="text-2xl font-bold text-[#7e06c8]">Produteka DeepWork</h1>
+                    
+                    <!-- Dark Mode Toggle -->
+                    <div class="flex items-center">
+                        <span class="mr-2">☀️</span>
+                        <label class="switch">
+                            <input type="checkbox" id="darkModeToggle">
+                            <span class="slider"></span>
+                        </label>
+                        <span class="ml-2">🌙</span>
+                    </div>
+                </div>
+                
+                <!-- Mode Selection -->
+                <div class="flex space-x-2 mb-6 w-full justify-center">
+                    <button id="workBtn" class="mode-btn active px-4 py-2 rounded-lg font-medium">Pongámonos serios</button>
+                    <button id="shortBreakBtn" class="mode-btn px-4 py-2 rounded-lg font-medium">Descansito</button>
+                    <button id="longBreakBtn" class="mode-btn px-4 py-2 rounded-lg font-medium">Pausa activa</button>
+                </div>
+                
+                <div class="flex flex-col md:flex-row items-center justify-center w-full">
+                    <!-- Timer Display -->
+                    <div class="timer-circle shadow-lg mb-6 md:mb-0 md:mr-8">
+                        <svg class="progress-ring" width="220" height="220">
+                            <circle id="progressRing" cx="110" cy="110" r="100" stroke="#ffffff" stroke-opacity="0.3" stroke-width="10" fill="transparent" />
+                            <circle id="progressIndicator" cx="110" cy="110" r="100" stroke="#ffffff" stroke-width="10" fill="transparent" stroke-dasharray="628.3" stroke-dashoffset="0" />
+                        </svg>
+                        <div class="time-display text-white" id="timeDisplay">25:00</div>
+                    </div>
+                    
+                    <!-- Control Buttons -->
+                    <div class="flex flex-col space-y-4">
+                        <button id="startBtn" class="btn bg-[#FF7700] text-white px-6 py-3 rounded-lg font-medium w-40">A darle!</button>
+                        <button id="pauseBtn" class="btn bg-[#FA55DE] text-white px-6 py-3 rounded-lg font-medium w-40 hidden">Pausar</button>
+                        <button id="resetBtn" class="btn bg-[#7e06c8] text-white px-6 py-3 rounded-lg font-medium w-40">Otra vez</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Timer variables
+        let timer;
+        let timeLeft = 25 * 60; // 25 minutes in seconds
+        let isRunning = false;
+        let mode = 'work';
+        let sessionsCompleted = 0;
+        let isDarkMode = false;
+        
+        // DOM elements
+        const timeDisplay = document.getElementById('timeDisplay');
+        const startBtn = document.getElementById('startBtn');
+        const pauseBtn = document.getElementById('pauseBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        const workBtn = document.getElementById('workBtn');
+        const shortBreakBtn = document.getElementById('shortBreakBtn');
+        const longBreakBtn = document.getElementById('longBreakBtn');
+        const phraseDisplay = document.getElementById('phraseDisplay');
+        const sessionCount = document.getElementById('sessionCount');
+        const progressIndicator = document.getElementById('progressIndicator');
+        const darkModeToggle = document.getElementById('darkModeToggle');
+        
+        // Inspirational phrases with authors
+        const inspirationalPhrases = [
+            {
+                text: "Cada cosa que haces es como echarle un voto a la versión más chimba de ti mismo.",
+                author: "James Clear"
+            },
+            {
+                text: "No es por las metas que uno llega lejos, es por los sistemas que uno monta.",
+                author: "James Clear"
+            },
+            {
+                text: "El éxito no es por un solo golpe de suerte, sino por las pequeñas que uno hace todos los días.",
+                author: "James Clear"
+            },
+            {
+                text: "Lo que más sabotea el éxito no es caerse, sino aburrirse y botar la toalla.",
+                author: "James Clear"
+            },
+            {
+                text: "La productividad es como ahorrar: una tarea más hoy y mañana estás hecho un duro.",
+                author: "James Clear"
+            },
+            {
+                text: "Sin importar que uno sea el putas, si no produce no come.",
+                author: "Cal Newport"
+            },
+            {
+                text: "Cuando uno tiene claro lo que vale la pena, lo demás se vuelve paja.",
+                author: "Cal Newport"
+            },
+            {
+                text: "Para desbloquear el deepwork hay que cogerle cariño al aburrimiento.",
+                author: "Cal Newport"
+            },
+            {
+                text: "Unas cuantas horas bien concentrado al día y te vuelves un crack.",
+                author: "Cal Newport"
+            },
+            {
+                text: "El mayor riesgo para la productividad es estar dándole duro a lo que no es.",
+                author: "Cal Newport"
+            },
+            {
+                text: "No puedes hacer un regreso si no arrancas.",
+                author: "James Clear"
+            },
+            {
+                text: "La calidad de tu vida depende de la calidad de tus hábitos.",
+                author: "James Clear"
+            },
+            {
+                text: "El costo de la procrastinación es la vida que podrías haber vivido.",
+                author: "James Clear"
+            },
+            {
+                text: "Debes trabajar duro para descubrir cómo trabajar inteligentemente.",
+                author: "James Clear"
+            },
+            {
+                text: "Cuando te enamoras del proceso en lugar del resultado, podés estar tranquilo en cualquier punto del camino.",
+                author: "James Clear"
+            }
+        ];
+        
+        // Timer durations in seconds
+        const durations = {
+            work: 25 * 60,
+            shortBreak: 5 * 60,
+            longBreak: 15 * 60
+        };
+        
+        // Update timer display
+        function updateDisplay() {
+            const minutes = Math.floor(timeLeft / 60);
+            const seconds = timeLeft % 60;
+            timeDisplay.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            
+            // Update progress ring
+            const totalTime = durations[mode];
+            const dashoffset = 628.3 * (1 - timeLeft / totalTime);
+            progressIndicator.style.strokeDashoffset = dashoffset;
+        }
+        
+        // Get random phrase
+        function getRandomPhrase() {
+            const randomIndex = Math.floor(Math.random() * inspirationalPhrases.length);
+            return inspirationalPhrases[randomIndex];
+        }
+        
+        // Display a new phrase with animation
+        function showNewPhrase() {
+            phraseDisplay.style.opacity = 0;
+            setTimeout(() => {
+                const phrase = getRandomPhrase();
+                const phraseText = phraseDisplay.querySelector('.phrase-text');
+                const phraseAuthor = phraseDisplay.querySelector('.phrase-author');
+                
+                phraseText.textContent = phrase.text;
+                phraseAuthor.textContent = `— ${phrase.author}`;
+                
+                phraseDisplay.classList.add('fade-in');
+                phraseDisplay.style.opacity = 1;
+                setTimeout(() => {
+                    phraseDisplay.classList.remove('fade-in');
+                }, 500);
+            }, 300);
+        }
+        
+        // Play sound when timer ends
+        function playTimerEndSound() {
+            // Note: This function is commented out due to audio limitations
+            // When implementing in your site, you can uncomment this code
+            /*
+            const audio = new Audio('https://assets.mixkit.co/sfx/preview/mixkit-alarm-digital-clock-beep-989.mp3');
+            audio.play();
+            */
+            
+            // For now, we'll just show a message in the console
+            console.log('Timer ended! Sound would play here.');
+        }
+        
+        // Start timer
+        function startTimer() {
+            if (!isRunning) {
+                isRunning = true;
+                startBtn.classList.add('hidden');
+                pauseBtn.classList.remove('hidden');
+                
+                timer = setInterval(() => {
+                    timeLeft--;
+                    updateDisplay();
+                    
+                    if (timeLeft <= 0) {
+                        clearInterval(timer);
+                        isRunning = false;
+                        
+                        // Play notification sound
+                        playTimerEndSound();
+                        
+                        if (mode === 'work') {
+                            sessionsCompleted++;
+                            sessionCount.textContent = sessionsCompleted;
+                            
+                            if (sessionsCompleted % 4 === 0) {
+                                setMode('longBreak');
+                            } else {
+                                setMode('shortBreak');
+                            }
+                        } else {
+                            setMode('work');
+                        }
+                        
+                        showNewPhrase();
+                        startBtn.classList.remove('hidden');
+                        pauseBtn.classList.add('hidden');
+                    }
+                }, 1000);
+            }
+        }
+        
+        // Pause timer
+        function pauseTimer() {
+            if (isRunning) {
+                clearInterval(timer);
+                isRunning = false;
+                startBtn.classList.remove('hidden');
+                pauseBtn.classList.add('hidden');
+            }
+        }
+        
+        // Reset timer
+        function resetTimer() {
+            clearInterval(timer);
+            isRunning = false;
+            timeLeft = durations[mode];
+            updateDisplay();
+            startBtn.classList.remove('hidden');
+            pauseBtn.classList.add('hidden');
+        }
+        
+        // Set timer mode
+        function setMode(newMode) {
+            mode = newMode;
+            timeLeft = durations[mode];
+            updateDisplay();
+            
+            // Update button styles
+            [workBtn, shortBreakBtn, longBreakBtn].forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            // Set active button style and timer circle color
+            const timerCircle = document.querySelector('.timer-circle');
+            
+            if (mode === 'work') {
+                workBtn.classList.add('active');
+                workBtn.style.backgroundColor = '#FF7700';
+                timerCircle.style.background = 'linear-gradient(135deg, #FF7700, #FA55DE)';
+            } else if (mode === 'shortBreak') {
+                shortBreakBtn.classList.add('active');
+                shortBreakBtn.style.backgroundColor = '#FA55DE';
+                timerCircle.style.background = 'linear-gradient(135deg, #FA55DE, #7e06c8)';
+            } else {
+                longBreakBtn.classList.add('active');
+                longBreakBtn.style.backgroundColor = '#7e06c8';
+                longBreakBtn.style.color = 'white';
+                timerCircle.style.background = 'linear-gradient(135deg, #7e06c8, #FF7700)';
+            }
+            
+            // Reset timer if it was running
+            if (isRunning) {
+                clearInterval(timer);
+                isRunning = false;
+                startBtn.classList.remove('hidden');
+                pauseBtn.classList.add('hidden');
+            }
+        }
+        
+        // Toggle dark mode
+        function toggleDarkMode() {
+            isDarkMode = darkModeToggle.checked;
+            if (isDarkMode) {
+                document.body.classList.add('dark-mode');
+                document.querySelector('.logo-container').classList.add('dark-mode');
+            } else {
+                document.body.classList.remove('dark-mode');
+                document.querySelector('.logo-container').classList.remove('dark-mode');
+            }
+        }
+        
+        // Event listeners
+        startBtn.addEventListener('click', startTimer);
+        pauseBtn.addEventListener('click', pauseTimer);
+        resetBtn.addEventListener('click', resetTimer);
+        workBtn.addEventListener('click', () => setMode('work'));
+        shortBreakBtn.addEventListener('click', () => setMode('shortBreak'));
+        longBreakBtn.addEventListener('click', () => setMode('longBreak'));
+        darkModeToggle.addEventListener('change', toggleDarkMode);
+        
+        // Initialize
+        updateDisplay();
+        setMode('work');
+        
+        // Show initial phrase
+        showNewPhrase();
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'93931e25a6234c10',t:'MTc0NjE0Mjc2Mi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
